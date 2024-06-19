@@ -1,6 +1,9 @@
 package main
 
-import "time"
+import (
+	"net/http"
+	"time"
+)
 
 type quotationDetails struct {
 	ID         int    `json:"id"`
@@ -24,5 +27,11 @@ const (
 )
 
 func main() {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/cotacao", QuotationHandler)
+	http.ListenAndServe(":8080", mux)
+}
+
+func QuotationHandler(w http.ResponseWriter, r *http.Request) {
 
 }
