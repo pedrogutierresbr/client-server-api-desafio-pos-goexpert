@@ -15,16 +15,16 @@ type QuotationValue struct {
 }
 
 const (
-	serverURL     = "http://localhost:8080/cotacao"
-	clientTimeout = 300 * time.Millisecond
-	outputFileName
+	serverURL      = "http://localhost:8080/cotacao"
+	clientTimeout  = 300 * time.Millisecond
+	outputFileName = "cotacao.txt"
 )
 
 func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), clientTimeout)
 	defer cancel()
 
-	quotation, err := getQuotation(ctx)
+	quotation, err := GetQuotation(ctx)
 	if err != nil {
 		log.Fatalf("Erro ao obter cotação: %v", err)
 	}
@@ -32,7 +32,7 @@ func main() {
 	fmt.Printf("valor da quotation %v", quotation)
 }
 
-func getQuotation(ctx context.Context) (QuotationValue, error) {
+func GetQuotation(ctx context.Context) (QuotationValue, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", serverURL, nil)
 	if err != nil {
 		return QuotationValue{}, err
