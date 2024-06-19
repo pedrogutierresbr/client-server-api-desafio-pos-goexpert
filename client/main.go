@@ -24,39 +24,45 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), clientTimeout)
 	defer cancel()
 
-	quotation := getQuotation(ctx)
+	quotation, err := getQuotation(ctx)
+	if err != nil {
+		log.Fatalf("Erro ao obter cotação: %v", err)
+	}
 
 	fmt.Printf("valor da quotation %v", quotation)
 }
 
-func getQuotation(ctx context.Context) QuotationValue {
+func getQuotation(ctx context.Context) (QuotationValue, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", serverURL, nil)
 	if err != nil {
-		log.Panic(err)
+		return QuotationValue{}, err
 	}
 
-	select {
-	case <-ctx.Done():
-		log.Panic("Timeout reached.")
-		return QuotationValue{}
-	default:
-		res, err := http.DefaultClient.Do(req)
-		if err != nil {
-			log.Panic("Ocorreu um erro ao tentar ler o response da consulta da cotação do dolar")
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		select {
+		case <-ctx.Done():
+			return QuotationValue{}, fmt.Errorf("Timeout reached!")
+		default:
+			return QuotationValue{}, fmt.Errorf("Erro ao fazer a requisição: %v", err)
 		}
-		defer res.Body.Close()
-
-		body, err := io.ReadAll(res.Body)
-		if err != nil {
-			panic(err)
-		}
-
-		var quotationDolar QuotationValue
-		err = json.Unmarshal(body, &quotationDolar)
-		if err != nil {
-			panic(err)
-		}
-
-		return quotationDolar
 	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return QuotationValue{}, fmt.Errorf("Status code inesperado: %d", res.StatusCode)
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return QuotationValue{}, err
+	}
+
+	var quotationDolar QuotationValue
+	err = json.Unmarshal(body, &quotationDolar)
+	if err != nil {
+		panic(err)
+	}
+
+	return quotationDolar, nil
 }
