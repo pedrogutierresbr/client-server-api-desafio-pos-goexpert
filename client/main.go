@@ -16,7 +16,7 @@ type QuotationValue struct {
 }
 
 const (
-	clientTimeout  = 1000 * time.Millisecond
+	clientTimeout  = 300 * time.Millisecond
 	outputFileName = "cotacao.txt"
 )
 

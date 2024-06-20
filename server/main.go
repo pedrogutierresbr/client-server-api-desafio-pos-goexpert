@@ -39,8 +39,8 @@ type Dollar struct {
 
 const (
 	apiURL     = "https://economia.awesomeapi.com.br/json/last/USD-BRL"
-	apiTimeout = 1000 * time.Millisecond
-	dbTimeout  = 1000 * time.Millisecond
+	apiTimeout = 200 * time.Millisecond
+	dbTimeout  = 10 * time.Millisecond
 )
 
 func main() {
