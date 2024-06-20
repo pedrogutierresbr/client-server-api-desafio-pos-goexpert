@@ -15,8 +15,7 @@ type QuotationValue struct {
 }
 
 const (
-	serverURL      = "http://localhost:8080/cotacao"
-	clientTimeout  = 300 * time.Millisecond
+	clientTimeout  = 1000 * time.Millisecond
 	outputFileName = "cotacao.txt"
 )
 
@@ -33,7 +32,7 @@ func main() {
 }
 
 func GetQuotation(ctx context.Context) (QuotationValue, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", serverURL, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", "http://localhost:8080/cotacao", nil)
 	if err != nil {
 		return QuotationValue{}, err
 	}
@@ -42,9 +41,9 @@ func GetQuotation(ctx context.Context) (QuotationValue, error) {
 	if err != nil {
 		select {
 		case <-ctx.Done():
-			return QuotationValue{}, fmt.Errorf("Timeout reached!")
+			return QuotationValue{}, fmt.Errorf("Timeout reached!\n%v", err)
 		default:
-			return QuotationValue{}, fmt.Errorf("Erro ao fazer a requisição: %v", err)
+			return QuotationValue{}, fmt.Errorf("Erro ao fazer a requisição!\n%v", err)
 		}
 	}
 	defer res.Body.Close()
@@ -61,7 +60,7 @@ func GetQuotation(ctx context.Context) (QuotationValue, error) {
 	var quotationDolar QuotationValue
 	err = json.Unmarshal(body, &quotationDolar)
 	if err != nil {
-		panic(err)
+		fmt.Printf("Erro ao parsear valor do câmbio!\n%v", err)
 	}
 
 	return quotationDolar, nil
