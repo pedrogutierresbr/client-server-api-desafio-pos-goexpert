@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -28,7 +29,12 @@ func main() {
 		log.Fatalf("Erro ao obter cotação: %v", err)
 	}
 
-	fmt.Printf("valor da quotation %v", quotation)
+	err = SaveQuotationFile(quotation)
+	if err != nil {
+		log.Fatalf("Erro ao salvar valor no arquivo: %v", err)
+	}
+
+	fmt.Printf("Obrigado por usar o meu programa!")
 }
 
 func GetQuotation(ctx context.Context) (QuotationValue, error) {
@@ -64,4 +70,19 @@ func GetQuotation(ctx context.Context) (QuotationValue, error) {
 	}
 
 	return quotationDolar, nil
+}
+
+func SaveQuotationFile(quotation QuotationValue) error {
+	quotationFile, err := os.Create("cotacao.txt")
+	if err != nil {
+		return fmt.Errorf("erro ao criar o arquivo de cotação: %v", err)
+	}
+	defer quotationFile.Close()
+
+	_, err = quotationFile.WriteString("Dólar: " + quotation.Bid + "\n")
+	if err != nil {
+		return fmt.Errorf("erro ao escrever no arquivo de cotação: %v", err)
+	}
+
+	return nil
 }
