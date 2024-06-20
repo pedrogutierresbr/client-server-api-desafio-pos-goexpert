@@ -41,15 +41,15 @@ func GetQuotation(ctx context.Context) (QuotationValue, error) {
 	if err != nil {
 		select {
 		case <-ctx.Done():
-			return QuotationValue{}, fmt.Errorf("Timeout reached!\n%v", err)
+			return QuotationValue{}, fmt.Errorf("timeout reached!\n%v", err)
 		default:
-			return QuotationValue{}, fmt.Errorf("Erro ao fazer a requisição!\n%v", err)
+			return QuotationValue{}, fmt.Errorf("erro ao fazer a requisição!\n%v", err)
 		}
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		return QuotationValue{}, fmt.Errorf("Status code inesperado: %d", res.StatusCode)
+		return QuotationValue{}, fmt.Errorf("status code inesperado: %d", res.StatusCode)
 	}
 
 	body, err := io.ReadAll(res.Body)

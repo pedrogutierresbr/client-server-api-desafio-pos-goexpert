@@ -9,9 +9,7 @@ import (
 	"time"
 
 	uuid "github.com/google/uuid"
-
-	_ "github.com/mattn/go-sqlite3"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
@@ -35,14 +33,14 @@ type QuotationResponse struct {
 }
 
 type Dollar struct {
-	ID  uuid.UUID `gorm:"type:uuid;primaryKey;" json:"-"`
+	ID  uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
 	Bid string    `json:"bid"`
 }
 
 const (
 	apiURL     = "https://economia.awesomeapi.com.br/json/last/USD-BRL"
-	apiTimeout = 600 * time.Millisecond
-	dbTimeout  = 10 * time.Millisecond
+	apiTimeout = 1000 * time.Millisecond
+	dbTimeout  = 1000 * time.Millisecond
 )
 
 func main() {
@@ -96,26 +94,27 @@ func GetDollarQuotation() (*QuotationResponse, error) {
 }
 
 func SaveQuotationInDB(quotation QuotationResponse) (*Dollar, error) {
-	db, err := gorm.Open(sqlite.Open("sqlite.db"), &gorm.Config{})
+	dsn := "root:root@tcp(localhost:3306)/goexpert?charset=utf8mb4&parseTime=True&loc=Local"
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
 	db.AutoMigrate(&Dollar{})
 
-	dbCtx, dbCancel := context.WithTimeout(context.Background(), dbTimeout)
-	defer dbCancel()
+	gormCtx, gormCancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer gormCancel()
 
 	select {
-	case <-dbCtx.Done():
-		fmt.Println("DB Timeout!")
-		return nil, dbCtx.Err()
+	case <-gormCtx.Done():
+		return nil, fmt.Errorf("timeout reached!\n%v", err)
 	default:
 		bidDollar := &Dollar{
 			ID:  uuid.New(),
 			Bid: quotation.USDBRL.Bid,
 		}
 
-		db.WithContext(dbCtx).Create(&bidDollar)
+		db.WithContext(gormCtx).Create(bidDollar)
 		return bidDollar, nil
 	}
+
 }
