@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -52,16 +53,24 @@ func main() {
 func QuotationHandler(w http.ResponseWriter, r *http.Request) {
 	quotation, err := GetDollarQuotation()
 	if err != nil {
-		panic(err)
+		log.Printf("Erro ao obter cotação: %v", err)
+		http.Error(w, "Erro ao obter cotação", http.StatusInternalServerError)
+		return
 	}
 
 	bid, err := SaveQuotationInDB(*quotation)
 	if err != nil {
-		panic(err)
+		log.Printf("Erro ao salvar cotação no banco de dados: %v", err)
+		http.Error(w, "Erro ao salvar cotação no banco de dados", http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(bid)
+	err = json.NewEncoder(w).Encode(bid)
+	if err != nil {
+		log.Printf("Erro ao codificar resposta JSON: %v", err)
+		http.Error(w, "Erro ao codificar resposta JSON", http.StatusInternalServerError)
+	}
 }
 
 func GetDollarQuotation() (*QuotationResponse, error) {
@@ -97,7 +106,7 @@ func SaveQuotationInDB(quotation QuotationResponse) (*Dollar, error) {
 	dsn := "root:root@tcp(localhost:3306)/goexpert?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("erro ao conectar ao banco de dados: %v", err)
 	}
 	db.AutoMigrate(&Dollar{})
 
@@ -106,14 +115,17 @@ func SaveQuotationInDB(quotation QuotationResponse) (*Dollar, error) {
 
 	select {
 	case <-gormCtx.Done():
-		return nil, fmt.Errorf("timeout reached!\n%v", err)
+		return nil, fmt.Errorf("erro ao salvar cotação no banco de dados: timeout reachead!\n%v", gormCtx.Err())
 	default:
 		bidDollar := &Dollar{
 			ID:  uuid.New(),
 			Bid: quotation.USDBRL.Bid,
 		}
 
-		db.WithContext(gormCtx).Create(bidDollar)
+		err := db.WithContext(gormCtx).Create(bidDollar)
+		if err != nil {
+			return nil, fmt.Errorf("erro ao salvar cotação no banco de dados: %v", err)
+		}
 		return bidDollar, nil
 	}
 

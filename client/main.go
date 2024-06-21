@@ -26,12 +26,12 @@ func main() {
 
 	quotation, err := GetQuotation(ctx)
 	if err != nil {
-		log.Fatalf("Erro ao obter cotação: %v", err)
+		log.Fatalf("erro ao obter cotação: %v", err)
 	}
 
 	err = SaveQuotationFile(quotation)
 	if err != nil {
-		log.Fatalf("Erro ao salvar valor no arquivo: %v", err)
+		log.Fatalf("erro ao salvar valor no arquivo: %v", err)
 	}
 
 	fmt.Printf("Obrigado por usar o meu programa!")
@@ -66,7 +66,7 @@ func GetQuotation(ctx context.Context) (QuotationValue, error) {
 	var quotationDolar QuotationValue
 	err = json.Unmarshal(body, &quotationDolar)
 	if err != nil {
-		fmt.Printf("Erro ao parsear valor do câmbio!\n%v", err)
+		fmt.Printf("erro ao parsear valor do câmbio!\n%v", err)
 	}
 
 	return quotationDolar, nil
