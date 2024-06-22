@@ -10,8 +10,9 @@ import (
 	"time"
 
 	uuid "github.com/google/uuid"
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	_ "modernc.org/sqlite"
 )
 
 type QuotationDetails struct {
@@ -103,30 +104,33 @@ func GetDollarQuotation() (*QuotationResponse, error) {
 }
 
 func SaveQuotationInDB(quotation QuotationResponse) (*Dollar, error) {
-	dsn := "root:root@tcp(localhost:3306)/goexpert?charset=utf8mb4&parseTime=True&loc=Local"
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	dsn := "../database.db"
+	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("erro ao conectar ao banco de dados: %v", err)
 	}
-	db.AutoMigrate(&Dollar{})
+
+	if err := db.AutoMigrate(&Dollar{}); err != nil {
+		log.Printf("Erro ao migrar a estrutura do banco de dados: %v", err)
+		return nil, fmt.Errorf("erro ao migrar a estrutura do banco de dados: %v", err)
+	}
 
 	gormCtx, gormCancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer gormCancel()
 
-	select {
-	case <-gormCtx.Done():
-		return nil, fmt.Errorf("erro ao salvar cotação no banco de dados: timeout reachead!\n%v", gormCtx.Err())
-	default:
-		bidDollar := &Dollar{
-			ID:  uuid.New(),
-			Bid: quotation.USDBRL.Bid,
-		}
-
-		err := db.WithContext(gormCtx).Create(bidDollar)
-		if err != nil {
-			return nil, fmt.Errorf("erro ao salvar cotação no banco de dados: %v", err)
-		}
-		return bidDollar, nil
+	bidDollar := &Dollar{
+		ID:  uuid.New(),
+		Bid: quotation.USDBRL.Bid,
 	}
 
+	if err := db.WithContext(gormCtx).Create(bidDollar).Error; err != nil {
+		if gormCtx.Err() == context.DeadlineExceeded {
+			log.Printf("Erro ao salvar cotação no banco de dados: timeout reachead!\n%v", gormCtx.Err())
+			return nil, fmt.Errorf("erro ao salvar cotação no banco de dados: timeout reachead!\n%v", gormCtx.Err())
+		}
+		log.Printf("Erro ao salvar cotação no banco de dados: %v", err)
+		return nil, fmt.Errorf("erro ao salvar cotação no banco de dados: %v", err)
+	}
+
+	return bidDollar, nil
 }
