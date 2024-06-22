@@ -34,7 +34,7 @@ $ git clone https://github.com/pedrogutierresbr/client-server-api-desafio-pos-go
 
 ```
 
-#### Rodando a aplicação web - Server
+#### Rodando a aplicação - Server
 
 ```bash
 
@@ -51,7 +51,7 @@ $ go run server.go
 
 ```
 
-#### Rodando a aplicação web - Client
+#### Rodando a aplicação - Client
 
 ```bash
 
