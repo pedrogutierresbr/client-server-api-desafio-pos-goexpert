@@ -71,8 +71,8 @@ $ go run client.go
 As seguintes ferramentas foram usadas na construção do projeto:
 
 -   Go
--   Docker
--   MySql
+-   GORM
+-   SQLite
 
 ## Licença
 
