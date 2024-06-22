@@ -104,7 +104,7 @@ func GetDollarQuotation() (*QuotationResponse, error) {
 }
 
 func SaveQuotationInDB(quotation QuotationResponse) (*Dollar, error) {
-	dsn := "../database.db"
+	dsn := "../database/database.db"
 	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("erro ao conectar ao banco de dados: %v", err)
