@@ -28,9 +28,6 @@ Antes de começar, você vai precisar ter instalado em sua máquina as seguintes
 # Clone este repositório
 $ git clone https://github.com/pedrogutierresbr/client-server-api-desafio-pos-goexpert.git
 
-# Caso esteja utilizando sistema operacional Windows, 
-# você precisará estar com o Docker Desktop aberto.
-
 ```
 
 #### Rodando a aplicação - Server
