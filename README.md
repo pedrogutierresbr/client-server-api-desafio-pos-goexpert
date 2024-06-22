@@ -20,7 +20,6 @@ Antes de começar, você vai precisar ter instalado em sua máquina as seguintes
 
 -   [Git](https://git-scm.com)
 -   [VSCode](https://code.visualstudio.com/)
--   [Docker](https://www.docker.com/)
 
 #### Acessando o repositório
 
@@ -28,9 +27,6 @@ Antes de começar, você vai precisar ter instalado em sua máquina as seguintes
 
 # Clone este repositório
 $ git clone https://github.com/pedrogutierresbr/client-server-api-desafio-pos-goexpert.git
-
-# Caso esteja utilizando sistema operacional Windows, 
-# você precisará estar com o Docker Desktop aberto.
 
 ```
 
